@@ -16,9 +16,6 @@ type Product struct {
 	UpdatedAt time.Time
 }
 
-// -- Business Logic --
-// Business rules that are intrinsic to the Product entity are placed here as methods.
-
 // IsStockAvailable checks if the current stock is sufficient for the requested quantity.
 func (p *Product) IsStockAvailable(requestedQuantity int) bool {
 	return p.Quantity >= requestedQuantity
