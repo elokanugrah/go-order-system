@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=order_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mq:
+    image: rabbitmq:3.9-management-alpine
+    ports:
+      - "5672:5672"   # Untuk koneksi aplikasi
+      - "15672:15672" # Untuk UI web management
+
+volumes:
+  postgres_data:
