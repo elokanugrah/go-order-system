@@ -1,10 +1,10 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 
 	"github.com/elokanugrah/go-order-system/internal/config"
+	"github.com/elokanugrah/go-order-system/internal/database"
 	"github.com/elokanugrah/go-order-system/internal/repository/postgres"
 	"github.com/elokanugrah/go-order-system/internal/usecase"
 
@@ -14,35 +14,26 @@ import (
 )
 
 func main() {
-	// 1. Load configuration
+	// Load configuration
 	cfg := config.Load()
 
-	// 2. Use the configuration to connect to the database
-	db, err := sql.Open("postgres", cfg.DSN())
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
-	}
+	// Use the configuration to connect to the database
+	db := database.NewConnection(cfg)
 	defer db.Close()
-
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Database is not reachable: %v", err)
-	}
-
-	log.Println("Database connection successful.")
 
 	// --- WIRING / DEPENDENCY INJECTION ---
 
-	// 3. Initialize Repository Layer
+	// Initialize Repository Layer
 	productRepo := postgres.NewProductRepository(db)
 
-	// 4. Initialize Usecase Layer
+	// Initialize Usecase Layer
 	productUseCase := usecase.NewProductUseCase(productRepo)
 
-	// 5. Initialize Delivery Layer (Handler)
+	// Initialize Delivery Layer (Handler)
 	// For now, orderUseCase is nil because we haven't built it completely.
 	apiHandler := httpDelivery.NewHandler(productUseCase, nil)
 
-	// 6. Setup Router and Start Server
+	// Setup Router and Start Server
 	router := httpDelivery.SetupRouter(apiHandler)
 
 	log.Printf("Starting server on port %s", cfg.ServerPort)
