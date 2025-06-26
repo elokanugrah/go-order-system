@@ -36,7 +36,7 @@ func seedProducts(db *sql.DB) error {
 		return fmt.Errorf("error truncating products table: %w", err)
 	}
 
-	stmt, err := db.Prepare(`INSERT INTO products (name, price, quantity, created_at) VALUES ($1, $2, $3, $4)`)
+	stmt, err := db.Prepare(`INSERT INTO products (name, price, quantity, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`)
 	if err != nil {
 		return fmt.Errorf("error preparing insert statement: %w", err)
 	}
@@ -58,7 +58,7 @@ func seedProducts(db *sql.DB) error {
 		now := time.Now()
 
 		// Execute the prepared statement within the transaction
-		if _, err := tx.Stmt(stmt).Exec(name, price, quantity, now); err != nil {
+		if _, err := tx.Stmt(stmt).Exec(name, price, quantity, now, now); err != nil {
 			// If any insert fails, roll back the entire transaction
 			if rbErr := tx.Rollback(); rbErr != nil {
 				return fmt.Errorf("error executing insert and rolling back transaction: %w, %w", err, rbErr)

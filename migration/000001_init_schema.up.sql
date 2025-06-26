@@ -4,7 +4,8 @@ CREATE TABLE "products" (
   "name" varchar NOT NULL,
   "price" decimal(10, 2) NOT NULL,
   "quantity" integer NOT NULL DEFAULT 0,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "orders" (
@@ -12,7 +13,8 @@ CREATE TABLE "orders" (
   "user_id" bigint NOT NULL,
   "total_amount" decimal(10, 2) NOT NULL,
   "status" varchar NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "order_items" (
