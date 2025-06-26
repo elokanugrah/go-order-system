@@ -5,10 +5,8 @@ import "github.com/gin-gonic/gin"
 func SetupRouter(h *Handler) *gin.Engine {
 	router := gin.Default()
 
-	// Group routes under /api/v1
 	api := router.Group("/api/v1")
 	{
-		// Group product-related routes
 		products := api.Group("/products")
 		{
 			products.POST("/", h.CreateProduct)
@@ -16,6 +14,11 @@ func SetupRouter(h *Handler) *gin.Engine {
 			products.GET("/:id", h.GetProductByID)
 			products.PUT("/:id", h.UpdateProduct)
 			products.DELETE("/:id", h.DeleteProduct)
+		}
+
+		orders := api.Group("/orders")
+		{
+			orders.POST("/", h.CreateOrder)
 		}
 	}
 

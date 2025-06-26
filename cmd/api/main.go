@@ -25,13 +25,16 @@ func main() {
 
 	// Initialize Repository Layer
 	productRepo := postgres.NewProductRepository(db)
+	orderRepo := postgres.NewOrderRepository(db)
+	txManager := postgres.NewTransactionManager(db)
 
 	// Initialize Usecase Layer
 	productUseCase := usecase.NewProductUseCase(productRepo)
+	orderUseCase := usecase.NewOrderUseCase(orderRepo, productRepo, txManager)
 
 	// Initialize Delivery Layer (Handler)
 	// For now, orderUseCase is nil because we haven't built it completely.
-	apiHandler := httpDelivery.NewHandler(productUseCase, nil)
+	apiHandler := httpDelivery.NewHandler(productUseCase, orderUseCase)
 
 	// Setup Router and Start Server
 	router := httpDelivery.SetupRouter(apiHandler)
