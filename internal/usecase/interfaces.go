@@ -7,12 +7,23 @@ import (
 )
 
 type ProductRepository interface {
+	// Create
+	Save(ctx context.Context, product *domain.Product) error
+
+	// Read
 	FindByID(ctx context.Context, id int64) (*domain.Product, error)
 	FindManyByIDs(ctx context.Context, ids []int64) ([]domain.Product, error)
+	FindAll(ctx context.Context, limit, offset int) ([]domain.Product, error)
+
+	// Update
 	Update(ctx context.Context, product *domain.Product) error
+
+	// Delete
+	Delete(ctx context.Context, id int64) error
 }
 
 type OrderRepository interface {
+	// Create
 	Save(ctx context.Context, order *domain.Order) error
 }
 

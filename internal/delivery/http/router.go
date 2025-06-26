@@ -11,7 +11,11 @@ func SetupRouter(h *Handler) *gin.Engine {
 		// Group product-related routes
 		products := api.Group("/products")
 		{
+			products.POST("/", h.CreateProduct)
+			products.GET("/", h.ListProducts)
 			products.GET("/:id", h.GetProductByID)
+			products.PUT("/:id", h.UpdateProduct)
+			products.DELETE("/:id", h.DeleteProduct)
 		}
 	}
 

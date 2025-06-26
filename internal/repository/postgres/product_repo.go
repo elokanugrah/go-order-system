@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/elokanugrah/go-order-system/internal/domain"
 	"github.com/elokanugrah/go-order-system/internal/usecase"
+	"github.com/lib/pq"
 )
 
 // Ensure PostgresProductRepository implements the usecase.ProductRepository interface.
@@ -18,48 +20,152 @@ type PostgresProductRepository struct {
 	db *sql.DB
 }
 
+// Save inserts a new product into the database.
+func (r *PostgresProductRepository) Save(ctx context.Context, product *domain.Product) error {
+	query := `INSERT INTO products (name, price, quantity, created_at, updated_at) 
+			   VALUES ($1, $2, $3, $4, $5) 
+			   RETURNING id, created_at, updated_at`
+
+	now := time.Now()
+	err := r.db.QueryRowContext(ctx, query,
+		product.Name,
+		product.Price,
+		product.Quantity,
+		now, // set created_at
+		now, // set updated_at
+	).Scan(&product.ID, &product.CreatedAt, &product.UpdatedAt)
+
+	if err != nil {
+		return fmt.Errorf("error saving product: %w", err)
+	}
+
+	return nil
+}
+
+// Update modifies an existing product in the database.
+func (r *PostgresProductRepository) Update(ctx context.Context, product *domain.Product) error {
+	query := `UPDATE products 
+			   SET name = $1, price = $2, quantity = $3, updated_at = $4 
+			   WHERE id = $5`
+
+	result, err := r.db.ExecContext(ctx, query,
+		product.Name,
+		product.Price,
+		product.Quantity,
+		time.Now(), // set updated_at
+		product.ID,
+	)
+	if err != nil {
+		return fmt.Errorf("error updating product: %w", err)
+	}
+
+	// Check if any row was actually updated.
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error checking rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return errors.New("product not found for update")
+	}
+
+	return nil
+}
+
+// Delete removes a product from the database by its ID.
+func (r *PostgresProductRepository) Delete(ctx context.Context, id int64) error {
+	query := `DELETE FROM products WHERE id = $1`
+
+	result, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("error deleting product: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error checking rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return errors.New("product not found for delete")
+	}
+
+	return nil
+}
+
+// FindAll retrieves a paginated list of all products.
+func (r *PostgresProductRepository) FindAll(ctx context.Context, limit int, offset int) ([]domain.Product, error) {
+	query := `SELECT id, name, price, quantity, created_at, updated_at 
+			   FROM products 
+			   ORDER BY id ASC 
+			   LIMIT $1 OFFSET $2`
+
+	rows, err := r.db.QueryContext(ctx, query, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("error querying products: %w", err)
+	}
+	defer rows.Close()
+
+	var products []domain.Product
+	for rows.Next() {
+		var p domain.Product
+		if err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Quantity, &p.CreatedAt, &p.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning product row: %w", err)
+		}
+		products = append(products, p)
+	}
+
+	// Check for any errors that occurred during iteration.
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during rows iteration: %w", err)
+	}
+
+	return products, nil
+}
+
 // FindByID retrieves a single product from the database by its ID.
 func (r *PostgresProductRepository) FindByID(ctx context.Context, id int64) (*domain.Product, error) {
 	query := `SELECT id, name, price, quantity, created_at, updated_at FROM products WHERE id = $1`
-
-	// Create a product variable to scan into.
 	var p domain.Product
 
-	// Execute the query. QueryRowContext is used because we expect exactly one row.
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&p.ID,
-		&p.Name,
-		&p.Price,
-		&p.Quantity,
-		&p.CreatedAt,
-		&p.UpdatedAt,
+		&p.ID, &p.Name, &p.Price, &p.Quantity, &p.CreatedAt, &p.UpdatedAt,
 	)
 
-	// Handle potential errors.
 	if err != nil {
-		// If no rows were found, it's a specific error we should handle.
 		if errors.Is(err, sql.ErrNoRows) {
-			// We can return a custom domain-specific error or nil, nil to indicate not found.
-			// Returning nil, nil is simple and the use case can interpret it as "not found".
-			return nil, nil
+			return nil, nil // Return nil, nil to indicate not found, use case will handle it.
 		}
-		// For any other errors, wrap them with more context.
 		return nil, fmt.Errorf("error scanning product: %w", err)
 	}
 
 	return &p, nil
 }
 
-// FindManyByIDs retrieves multiple products from the database by their IDs.
-func (p *PostgresProductRepository) FindManyByIDs(ctx context.Context, ids []int64) ([]domain.Product, error) {
-	// For now, we can leave it unimplemented as it's not needed for the "Get By ID" feature.
-	return nil, errors.New("FindManyByIDs not implemented")
-}
+// FindManyByIDs retrieves multiple products based on a slice of IDs.
+func (r *PostgresProductRepository) FindManyByIDs(ctx context.Context, ids []int64) ([]domain.Product, error) {
+	query := `SELECT id, name, price, quantity, created_at, updated_at 
+			   FROM products 
+			   WHERE id = ANY($1)`
 
-// Update updates a product's details in the database.
-func (p *PostgresProductRepository) Update(ctx context.Context, product *domain.Product) error {
-	// Implementation for this method would go here.
-	return errors.New("Update not implemented")
+	rows, err := r.db.QueryContext(ctx, query, pq.Array(ids))
+	if err != nil {
+		return nil, fmt.Errorf("error querying products by ids: %w", err)
+	}
+	defer rows.Close()
+
+	var products []domain.Product
+	for rows.Next() {
+		var p domain.Product
+		if err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Quantity, &p.CreatedAt, &p.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning product row: %w", err)
+		}
+		products = append(products, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during rows iteration: %w", err)
+	}
+
+	return products, nil
 }
 
 // NewProductRepository creates a new instance of PostgresProductRepository.
