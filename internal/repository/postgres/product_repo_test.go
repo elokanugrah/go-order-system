@@ -23,19 +23,12 @@ type ProductRepositorySuite struct {
 // SetupSuite runs once before all tests in this suite.
 // It's used for setting up the database connection.
 func (s *ProductRepositorySuite) SetupSuite() {
-	// Load configuration to get database DSN
-	// Note: Assumes .env file is in the project root.
 	cfg := config.Load()
-
-	// Create a new database connection for testing
 	s.db = database.NewConnection(cfg)
-
-	// Create the repository instance with the test database connection
 	s.repo = postgres.NewProductRepository(s.db)
 }
 
 // TearDownSuite runs once after all tests in this suite are finished.
-// It's used for cleaning up resources, like closing the database connection.
 func (s *ProductRepositorySuite) TearDownSuite() {
 	err := s.db.Close()
 	if err != nil {
@@ -44,9 +37,8 @@ func (s *ProductRepositorySuite) TearDownSuite() {
 }
 
 // TearDownTest runs after each test function in the suite.
-// We use it to clean the database tables to ensure tests are isolated.
+// It cleans all relevant tables to ensure test isolation.
 func (s *ProductRepositorySuite) TearDownTest() {
-	// Truncate the table to leave it clean for the next test.
 	_, err := s.db.Exec("TRUNCATE TABLE products RESTART IDENTITY CASCADE")
 	s.Suite.NoError(err)
 }
@@ -58,7 +50,6 @@ func TestProductRepository(t *testing.T) {
 
 // TestSaveAndFindByID tests both Save and FindByID in a single flow.
 func (s *ProductRepositorySuite) TestSaveAndFindByID() {
-	// Use the suite's assertion library
 	assert := s.Suite.Assert()
 	ctx := context.Background()
 
@@ -68,14 +59,14 @@ func (s *ProductRepositorySuite) TestSaveAndFindByID() {
 		Quantity: 50,
 	}
 
-	// Act 1: Save the new product to the database
+	// Save the new product to the database
 	err := s.repo.Save(ctx, newProduct)
 
 	// Assert 1: Check for errors and that the ID is now populated
 	assert.NoError(err)
 	assert.NotZero(newProduct.ID) // The ID should be populated by the DB
 
-	// Act 2: Find the product we just saved using its new ID
+	// Find the product we just saved using its new ID
 	foundProduct, err := s.repo.FindByID(ctx, newProduct.ID)
 
 	// Assert 2: Check for errors and that the found data matches
@@ -90,7 +81,7 @@ func (s *ProductRepositorySuite) TestFindByID_NotFound() {
 	assert := s.Suite.Assert()
 	ctx := context.Background()
 
-	// Act: Try to find a product with an ID that doesn't exist
+	// Act
 	product, err := s.repo.FindByID(ctx, 99999)
 
 	// Assert: We expect no SQL error, but the returned product should be nil
@@ -103,7 +94,6 @@ func (s *ProductRepositorySuite) TestUpdate() {
 	assert := s.Suite.Assert()
 	ctx := context.Background()
 
-	// Arrange: First, create a product to update
 	productToUpdate := &domain.Product{Name: "Buku Lama", Price: 50000, Quantity: 5}
 	err := s.repo.Save(ctx, productToUpdate)
 	assert.NoError(err)
@@ -127,12 +117,11 @@ func (s *ProductRepositorySuite) TestDelete() {
 	assert := s.Suite.Assert()
 	ctx := context.Background()
 
-	// Arrange: Create a product to delete
 	productToDelete := &domain.Product{Name: "Barang Hapus", Price: 10, Quantity: 1}
 	err := s.repo.Save(ctx, productToDelete)
 	assert.NoError(err)
 
-	// Act: Delete the product
+	// Act
 	err = s.repo.Delete(ctx, productToDelete.ID)
 	assert.NoError(err)
 

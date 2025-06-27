@@ -14,7 +14,6 @@ import (
 )
 
 func TestProductUseCase(t *testing.T) {
-	// We create a new mock instance for each group of tests.
 	var mockProductRepo *mocks.ProductRepository
 	var productUseCase *usecase.ProductUseCase
 
@@ -32,6 +31,7 @@ func TestProductUseCase(t *testing.T) {
 
 			product, err := productUseCase.GetProductByID(context.Background(), 1)
 
+			// Assert
 			assert.NoError(t, err)
 			assert.NotNil(t, product)
 			assert.Equal(t, int64(1), product.ID)
@@ -45,13 +45,14 @@ func TestProductUseCase(t *testing.T) {
 			input := dto.CreateProductInput{Name: "New Gadget", Price: 1500, Quantity: 100}
 
 			// When Save is called, we tell the mock to do nothing and return no error.
-			// We use mock.MatchedBy to check if the argument passed to Save has the correct name.
+			// Use mock.MatchedBy to check if the argument passed to Save has the correct name.
 			mockProductRepo.On("Save", mock.Anything, mock.MatchedBy(func(p *domain.Product) bool {
 				return p.Name == input.Name
 			})).Return(nil).Once()
 
 			product, err := productUseCase.CreateProduct(context.Background(), input)
 
+			// Assert
 			assert.NoError(t, err)
 			assert.NotNil(t, product)
 			assert.Equal(t, "New Gadget", product.Name)
@@ -64,6 +65,7 @@ func TestProductUseCase(t *testing.T) {
 			// We don't need to set up the mock here because the function should fail before calling the repo.
 			product, err := productUseCase.CreateProduct(context.Background(), input)
 
+			// Assert
 			assert.Error(t, err)
 			assert.Nil(t, product)
 		})
@@ -81,6 +83,7 @@ func TestProductUseCase(t *testing.T) {
 
 			products, err := productUseCase.ListProducts(context.Background(), 1, 10)
 
+			// Assert
 			assert.NoError(t, err)
 			assert.Len(t, products, 2)
 			mockProductRepo.AssertExpectations(t)
@@ -88,8 +91,8 @@ func TestProductUseCase(t *testing.T) {
 	})
 
 	t.Run("UpdateProduct", func(t *testing.T) {
-		setup()
 		t.Run("should update product successfully", func(t *testing.T) {
+			setup()
 			input := dto.UpdateProductInput{Name: "Updated Name", Price: 200, Quantity: 20}
 			existingProduct := &domain.Product{ID: 1, Name: "Old Name", Price: 100, Quantity: 10}
 
@@ -99,6 +102,7 @@ func TestProductUseCase(t *testing.T) {
 
 			updatedProduct, err := productUseCase.UpdateProduct(context.Background(), 1, input)
 
+			// Assert
 			assert.NoError(t, err)
 			assert.NotNil(t, updatedProduct)
 			assert.Equal(t, "Updated Name", updatedProduct.Name)
@@ -107,6 +111,7 @@ func TestProductUseCase(t *testing.T) {
 		})
 
 		t.Run("should return not found error when updating non-existent product", func(t *testing.T) {
+			setup()
 			input := dto.UpdateProductInput{Name: "Updated Name", Price: 200, Quantity: 20}
 
 			// Mock FindByID to return "not found".
@@ -114,6 +119,7 @@ func TestProductUseCase(t *testing.T) {
 
 			product, err := productUseCase.UpdateProduct(context.Background(), 99, input)
 
+			// Assert
 			assert.Error(t, err)
 			assert.True(t, errors.Is(err, usecase.ErrProductNotFound))
 			assert.Nil(t, product)
@@ -131,6 +137,7 @@ func TestProductUseCase(t *testing.T) {
 
 			err := productUseCase.DeleteProduct(context.Background(), 1)
 
+			// Assert
 			assert.NoError(t, err)
 			mockProductRepo.AssertExpectations(t)
 		})
