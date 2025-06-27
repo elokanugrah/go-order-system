@@ -61,7 +61,6 @@ func (uc *ProductUseCase) GetProductByID(ctx context.Context, id int64) (*domain
 
 // ListProducts handles listing all products with pagination.
 func (uc *ProductUseCase) ListProducts(ctx context.Context, page, pageSize int) ([]domain.Product, error) {
-	// Set default values and limits for pagination.
 	if page <= 0 {
 		page = 1
 	}
@@ -90,7 +89,6 @@ func (uc *ProductUseCase) UpdateProduct(ctx context.Context, id int64, input dto
 		return nil, ErrProductNotFound
 	}
 
-	// Validate new input data.
 	if input.Name == "" {
 		return nil, errors.New("product name cannot be empty")
 	}

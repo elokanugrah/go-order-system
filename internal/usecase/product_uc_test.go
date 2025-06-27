@@ -62,7 +62,7 @@ func TestProductUseCase(t *testing.T) {
 		t.Run("should return error on invalid input", func(t *testing.T) {
 			input := dto.CreateProductInput{Name: "", Price: 1500, Quantity: 100} // Empty name
 
-			// We don't need to set up the mock here because the function should fail before calling the repo.
+			// don't set up the mock here because the function should fail before calling the repo.
 			product, err := productUseCase.CreateProduct(context.Background(), input)
 
 			// Assert

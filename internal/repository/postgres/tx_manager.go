@@ -11,12 +11,10 @@ import (
 // txKey is the key used to store the transaction object in the context.
 type txKey struct{}
 
-// PostgresTransactionManager is the PostgreSQL implementation of the TransactionManager interface.
 type PostgresTransactionManager struct {
 	db *sql.DB
 }
 
-// NewTransactionManager creates a new instance of PostgresTransactionManager.
 func NewTransactionManager(db *sql.DB) usecase.TransactionManager {
 	return &PostgresTransactionManager{db: db}
 }

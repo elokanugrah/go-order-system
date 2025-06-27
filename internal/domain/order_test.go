@@ -64,7 +64,7 @@ func TestOrder_CalculateTotalAmount(t *testing.T) {
 }
 
 func TestOrder_AddItem(t *testing.T) {
-	// Arrange: Create an initial order
+	// Create an initial order
 	order := &domain.Order{
 		OrderItems: []domain.OrderItem{
 			{Product: domain.Product{ID: 1}, PriceAtOrder: 100, Quantity: 1}, // Total = 100
@@ -72,7 +72,7 @@ func TestOrder_AddItem(t *testing.T) {
 		TotalAmount: 100,
 	}
 
-	// Arrange: Define the new item to add
+	// Define the new item to add
 	newItem := domain.OrderItem{
 		Product:      domain.Product{ID: 2},
 		PriceAtOrder: 50,

@@ -34,7 +34,6 @@ func NewOrderRepository(db *sql.DB) *PostgresOrderRepository {
 // getQuerier extracts a transaction from the context if it exists,
 // otherwise it returns the base database connection.
 func (r *PostgresOrderRepository) getQuerier(ctx context.Context) querier {
-	// Check if a transaction object exists in the context.
 	tx, ok := ctx.Value(txKey{}).(*sql.Tx)
 	if ok {
 		return tx
@@ -76,14 +75,10 @@ func (r *PostgresOrderRepository) Save(ctx context.Context, order *domain.Order)
 		p_num := i * 4
 		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d)", p_num+1, p_num+2, p_num+3, p_num+4))
 
-		// Append the actual values to the vals slice
 		vals = append(vals, order.ID, item.Product.ID, item.Quantity, item.PriceAtOrder)
 	}
 
-	// Join the placeholders to form the final query string.
 	itemQuery += strings.Join(placeholders, ", ")
-
-	// Add RETURNING id to get all new item ID
 	itemQuery += " RETURNING id"
 
 	rows, err := q.QueryContext(ctx, itemQuery, vals...)
@@ -92,7 +87,6 @@ func (r *PostgresOrderRepository) Save(ctx context.Context, order *domain.Order)
 	}
 	defer rows.Close()
 
-	// Read the returned IDs and assign them back
 	var newItemIDs []int64
 	for rows.Next() {
 		var id int64

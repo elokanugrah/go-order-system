@@ -22,7 +22,6 @@ type updateProductRequest struct {
 	Quantity int     `json:"quantity" binding:"required,gte=0"`
 }
 
-// CreateProduct handles the HTTP request for creating a new product.
 func (h *Handler) CreateProduct(c *gin.Context) {
 	var req createProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -30,7 +29,6 @@ func (h *Handler) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	// Prepare the input DTO for the use case.
 	input := dto.CreateProductInput{
 		Name:     req.Name,
 		Price:    req.Price,
@@ -46,7 +44,6 @@ func (h *Handler) CreateProduct(c *gin.Context) {
 	c.JSON(http.StatusCreated, product)
 }
 
-// GetProductByID handles the HTTP request for fetching a single product.
 func (h *Handler) GetProductByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -68,9 +65,7 @@ func (h *Handler) GetProductByID(c *gin.Context) {
 	c.JSON(http.StatusOK, product)
 }
 
-// ListProducts handles the HTTP request for listing all products with pagination.
 func (h *Handler) ListProducts(c *gin.Context) {
-	// Get pagination parameters from query string, with default values.
 	pageStr := c.DefaultQuery("page", "1")
 	pageSizeStr := c.DefaultQuery("pageSize", "10")
 
@@ -95,7 +90,6 @@ func (h *Handler) ListProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": products})
 }
 
-// UpdateProduct handles the HTTP request for updating a product.
 func (h *Handler) UpdateProduct(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -129,7 +123,6 @@ func (h *Handler) UpdateProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, product)
 }
 
-// DeleteProduct handles the HTTP request for deleting a product.
 func (h *Handler) DeleteProduct(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)

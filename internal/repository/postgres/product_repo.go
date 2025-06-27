@@ -12,10 +12,8 @@ import (
 	"github.com/lib/pq"
 )
 
-// Ensure PostgresProductRepository implements the usecase.ProductRepository interface.
 var _ usecase.ProductRepository = (*PostgresProductRepository)(nil)
 
-// PostgresProductRepository is the PostgreSQL implementation of the ProductRepository interface.
 type PostgresProductRepository struct {
 	db *sql.DB
 }
@@ -31,8 +29,8 @@ func (r *PostgresProductRepository) Save(ctx context.Context, product *domain.Pr
 		product.Name,
 		product.Price,
 		product.Quantity,
-		now, // set created_at
-		now, // set updated_at
+		now,
+		now,
 	).Scan(&product.ID, &product.CreatedAt, &product.UpdatedAt)
 
 	if err != nil {
@@ -52,14 +50,13 @@ func (r *PostgresProductRepository) Update(ctx context.Context, product *domain.
 		product.Name,
 		product.Price,
 		product.Quantity,
-		time.Now(), // set updated_at
+		time.Now(),
 		product.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("error updating product: %w", err)
 	}
 
-	// Check if any row was actually updated.
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("error checking rows affected: %w", err)
@@ -113,7 +110,6 @@ func (r *PostgresProductRepository) FindAll(ctx context.Context, limit int, offs
 		products = append(products, p)
 	}
 
-	// Check for any errors that occurred during iteration.
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error during rows iteration: %w", err)
 	}
@@ -168,7 +164,6 @@ func (r *PostgresProductRepository) FindManyByIDs(ctx context.Context, ids []int
 	return products, nil
 }
 
-// NewProductRepository creates a new instance of PostgresProductRepository.
 func NewProductRepository(db *sql.DB) *PostgresProductRepository {
 	return &PostgresProductRepository{db: db}
 }
