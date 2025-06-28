@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"log"
 
 	"github.com/elokanugrah/go-order-system/internal/domain"
 	"github.com/elokanugrah/go-order-system/internal/dto"
@@ -12,13 +14,15 @@ type OrderUseCase struct {
 	orderRepo   OrderRepository
 	productRepo ProductRepository
 	txManager   TransactionManager
+	broker      MessageBroker
 }
 
-func NewOrderUseCase(or OrderRepository, pr ProductRepository, tm TransactionManager) *OrderUseCase {
+func NewOrderUseCase(or OrderRepository, pr ProductRepository, tm TransactionManager, mb MessageBroker) *OrderUseCase {
 	return &OrderUseCase{
 		orderRepo:   or,
 		productRepo: pr,
 		txManager:   tm,
+		broker:      mb,
 	}
 }
 
@@ -97,9 +101,23 @@ func (uc *OrderUseCase) CreateOrder(ctx context.Context, input dto.CreateOrderIn
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
+	}
+
+	// Create the message payload
+	eventPayload, err := json.Marshal(map[string]interface{}{
+		"order_id": createdOrder.ID,
+		"user_id":  createdOrder.UserID,
+	})
+	if err != nil {
+		log.Printf("ERROR: failed to marshal event payload for order %d: %v", createdOrder.ID, err)
+	} else {
+		// Publish the event.
+		err = uc.broker.Publish(ctx, "orders.created", eventPayload)
+		if err != nil {
+			log.Printf("ERROR: failed to publish order.created event for order %d: %v", createdOrder.ID, err)
+		}
 	}
 
 	return createdOrder, nil

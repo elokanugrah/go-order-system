@@ -5,6 +5,7 @@ import (
 
 	"github.com/elokanugrah/go-order-system/internal/config"
 	"github.com/elokanugrah/go-order-system/internal/database"
+	"github.com/elokanugrah/go-order-system/internal/messagebroker"
 	"github.com/elokanugrah/go-order-system/internal/repository/postgres"
 	"github.com/elokanugrah/go-order-system/internal/usecase"
 
@@ -17,11 +18,15 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	// Use the configuration to connect to the database
 	db := database.NewConnection(cfg)
 	defer db.Close()
-
 	// --- WIRING / DEPENDENCY INJECTION ---
+
+	// Initialize Message Broker
+	mb, err := messagebroker.NewRabbitMQBroker(cfg.RabbitMQURL)
+	if err != nil {
+		log.Fatalf("Failed to initialize message broker: %v", err)
+	}
 
 	// Initialize Repository Layer
 	productRepo := postgres.NewProductRepository(db)
@@ -30,7 +35,7 @@ func main() {
 
 	// Initialize Usecase Layer
 	productUseCase := usecase.NewProductUseCase(productRepo)
-	orderUseCase := usecase.NewOrderUseCase(orderRepo, productRepo, txManager)
+	orderUseCase := usecase.NewOrderUseCase(orderRepo, productRepo, txManager, mb)
 
 	// Initialize Delivery Layer (Handler)
 	// For now, orderUseCase is nil because we haven't built it completely.
