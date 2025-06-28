@@ -17,7 +17,7 @@ type OrderRepositorySuite struct {
 	suite.Suite
 	db          *sql.DB
 	orderRepo   *postgres.PostgresOrderRepository
-	productRepo *postgres.PostgresProductRepository // We need this to create prerequisite products
+	productRepo *postgres.PostgresProductRepository
 }
 
 // txKey is a private key type to store the transaction object in the context.

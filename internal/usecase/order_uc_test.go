@@ -14,13 +14,12 @@ import (
 )
 
 func TestOrderUseCase_CreateOrder(t *testing.T) {
-	// We will create new mock instances for each test case to ensure isolation.
 	var mockProductRepo *mocks.ProductRepository
 	var mockOrderRepo *mocks.OrderRepository
 	var mockTxManager *mocks.TransactionManager
 	var orderUseCase *usecase.OrderUseCase
 
-	// setup is a helper function to initialize our components for each test.
+	// setup is a helper function to initialize components for each test.
 	setup := func() {
 		mockProductRepo = new(mocks.ProductRepository)
 		mockOrderRepo = new(mocks.OrderRepository)
@@ -31,7 +30,7 @@ func TestOrderUseCase_CreateOrder(t *testing.T) {
 	t.Run("should create order successfully when all conditions are met", func(t *testing.T) {
 		setup() // Reset mocks
 
-		// Arrange: Define the input from the delivery layer
+		// Define the input from the delivery layer
 		input := dto.CreateOrderInput{
 			UserID: 123,
 			Items: []dto.CreateOrderItemInput{
@@ -40,7 +39,7 @@ func TestOrderUseCase_CreateOrder(t *testing.T) {
 			},
 		}
 
-		// Arrange: Define the data our mock ProductRepository should return
+		// Define the data our mock ProductRepository should return
 		mockProducts := []domain.Product{
 			{ID: 1, Name: "Product A", Price: 10000, Quantity: 10}, // Stock is sufficient (10 > 2)
 			{ID: 2, Name: "Product B", Price: 5000, Quantity: 5},   // Stock is sufficient (5 > 1)
@@ -61,16 +60,16 @@ func TestOrderUseCase_CreateOrder(t *testing.T) {
 		mockProductRepo.On("Update", mock.Anything, mock.AnythingOfType("*domain.Product")).Return(nil).Times(2) // Expect Update to be called twice
 		mockOrderRepo.On("Save", mock.Anything, mock.AnythingOfType("*domain.Order")).Return(nil).Once()
 
-		// Act: Call the method we are testing
+		// Act
 		createdOrder, err := orderUseCase.CreateOrder(context.Background(), input)
 
-		// Assert: Check the results
+		// Assert
 		assert.NoError(t, err)
 		assert.NotNil(t, createdOrder)
 		assert.Equal(t, float64(25000), createdOrder.TotalAmount) // (2 * 10000) + (1 * 5000)
 		assert.Equal(t, domain.StatusPending, createdOrder.Status)
 
-		// Assert that all mock expectations were met
+		// Assert that all mock expectations
 		mockProductRepo.AssertExpectations(t)
 		mockOrderRepo.AssertExpectations(t)
 		mockTxManager.AssertExpectations(t)

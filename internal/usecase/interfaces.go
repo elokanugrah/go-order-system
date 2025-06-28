@@ -37,3 +37,7 @@ type OrderRepository interface {
 type TransactionManager interface {
 	WithTransaction(ctx context.Context, fn func(txCtx context.Context) error) error
 }
+
+type MessageBroker interface {
+	Publish(ctx context.Context, queueName string, message []byte) error
+}

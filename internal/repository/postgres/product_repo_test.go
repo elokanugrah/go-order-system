@@ -14,7 +14,7 @@ import (
 )
 
 type ProductRepositorySuite struct {
-	suite.Suite // Embed testify's suite package.
+	suite.Suite
 
 	db   *sql.DB
 	repo *postgres.PostgresProductRepository
@@ -59,7 +59,6 @@ func (s *ProductRepositorySuite) TestSaveAndFindByID() {
 		Quantity: 50,
 	}
 
-	// Save the new product to the database
 	err := s.repo.Save(ctx, newProduct)
 
 	// Assert 1: Check for errors and that the ID is now populated
@@ -98,7 +97,7 @@ func (s *ProductRepositorySuite) TestUpdate() {
 	err := s.repo.Save(ctx, productToUpdate)
 	assert.NoError(err)
 
-	// Act: Modify the product's details and call Update
+	// Act
 	productToUpdate.Name = "Buku Baru Edisi Revisi"
 	productToUpdate.Quantity = 3
 	err = s.repo.Update(ctx, productToUpdate)

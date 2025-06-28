@@ -19,7 +19,6 @@ type orderItemRequest struct {
 	Quantity  int   `json:"quantity" binding:"required,gt=0"`
 }
 
-// CreateOrder handles the HTTP request for creating a new order.
 func (h *Handler) CreateOrder(c *gin.Context) {
 	var req createOrderRequest
 
