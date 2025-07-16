@@ -38,6 +38,7 @@ type TransactionManager interface {
 	WithTransaction(ctx context.Context, fn func(txCtx context.Context) error) error
 }
 
+//go:generate mockery --name MessageBroker --output ./mocks --case=snake
 type MessageBroker interface {
 	Publish(ctx context.Context, queueName string, message []byte) error
 }
