@@ -33,6 +33,25 @@ The system features a REST API for managing products and orders, and a separate 
   * Go (v1.23+)
   * Docker & Docker Compose
   * `migrate-cli`
+  * `mockery`
+
+## Tooling Installation
+
+### migrate-CLI
+
+`migrate-cli` is a command-line tool for managing database migrations.
+
+```bash
+go install -tags 'postgres' [github.com/golang-migrate/migrate/v4/cmd/migrate@latest](https://github.com/golang-migrate/migrate/v4/cmd/migrate@latest)
+```
+
+### Mockery
+
+`mockery` is a tool for automatically generating mocks for your Go interfaces.
+
+```bash
+go install [github.com/vektra/mockery/v2@latest](https://github.com/vektra/mockery/v2@latest)
+```
 
 ### Running with Docker
 

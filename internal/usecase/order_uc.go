@@ -17,6 +17,7 @@ type OrderUseCase struct {
 	broker      MessageBroker
 }
 
+// penambahan parameter mb
 func NewOrderUseCase(or OrderRepository, pr ProductRepository, tm TransactionManager, mb MessageBroker) *OrderUseCase {
 	return &OrderUseCase{
 		orderRepo:   or,
